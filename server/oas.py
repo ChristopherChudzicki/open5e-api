@@ -20,7 +20,7 @@ def custom_postprocessing_hook(result, generator, request, public):
 			{ '$ref': '#/components/schemas/Creature' },
 			{ '$ref': '#/components/schemas/Spell' },
 			{ '$ref': '#/components/schemas/CharacterClass' },
-			{ '$ref': '#/components/schemas/Race' }
+			{ '$ref': '#/components/schemas/Species' }
 		]
 	}
 
