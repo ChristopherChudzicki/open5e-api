@@ -77,6 +77,7 @@ class WeaponSerializer(GameContentSerializer):
     def get_distance_unit(self, Weapon):
         return Weapon.get_distance_unit
 
+    @extend_schema_field(WeaponPropertyAssignmentSerializer(many=True))
     def get_properties(self, instance):
         properties = instance.properties.all().order_by("pk")
         return WeaponPropertyAssignmentSerializer(properties, context={'request': None}, many=True).data
