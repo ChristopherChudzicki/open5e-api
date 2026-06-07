@@ -5652,7 +5652,7 @@ components:
           readOnly: true
         saving_throws:
           allOf:
-          - $ref: '#/components/schemas/saving_throws'
+          - $ref: '#/components/schemas/SavingThrows'
           readOnly: true
         saving_throws_all:
           allOf:
@@ -7828,6 +7828,25 @@ components:
       - key
       - name
       - rules
+    SavingThrows:
+      type: object
+      description: |-
+        Saving-throw overrides. Each key is present only when the underlying field
+        is non-null (i.e. an override is set); a missing key means "use the default
+        modifier" (see `saving_throws_all` for the resolved-defaults view).
+      properties:
+        strength:
+          type: integer
+        dexterity:
+          type: integer
+        constitution:
+          type: integer
+        intelligence:
+          type: integer
+        wisdom:
+          type: integer
+        charisma:
+          type: integer
     SearchResult:
       type: object
       description: |-
@@ -8927,28 +8946,6 @@ components:
       - hit_dice_name
       - hit_points_at_1st_level
       - hit_points_at_higher_levels
-    saving_throws:
-      type: object
-      properties:
-        strength:
-          type: integer
-        dexterity:
-          type: integer
-        constitution:
-          type: integer
-        intelligence:
-          type: integer
-        wisdom:
-          type: integer
-        charisma:
-          type: integer
-      required:
-      - charisma
-      - constitution
-      - dexterity
-      - intelligence
-      - strength
-      - wisdom
     saving_throws_all:
       type: object
       properties:
