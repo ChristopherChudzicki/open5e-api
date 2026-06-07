@@ -43,19 +43,26 @@ def prefixed_aggregate_serializer(*, model, prefix, keys, name, defaults_fn=None
         class CreatureSerializer(GameContentSerializer):
             saving_throws = SavingThrows(source='*', read_only=True)
 
+    When `defaults_fn` is set, every key is unconditionally present and
+    non-null at the serializer layer (the defaults fill any model nulls), so
+    each field is declared `required=True, allow_null=False` regardless of the
+    underlying model field's nullability — the contract the runtime actually
+    delivers.
+
     All fields are emitted as IntegerField; broaden the dispatch here if a
     caller needs non-integer aggregates.
     """
+    has_defaults = defaults_fn is not None
     attrs = {}
     for key in keys:
         mf = model._meta.get_field(f'{prefix}{key}')
         attrs[key] = serializers.IntegerField(
             source=f'{prefix}{key}',
-            allow_null=mf.null,
-            required=not (mf.null or mf.blank),
+            allow_null=False if has_defaults else mf.null,
+            required=True if has_defaults else not (mf.null or mf.blank),
             help_text=mf.help_text or '',
         )
-    if defaults_fn is not None:
+    if has_defaults:
         attrs['_defaults_fn'] = staticmethod(defaults_fn)
     return type(name, (_AggregateSerializerBase,), attrs)
 
