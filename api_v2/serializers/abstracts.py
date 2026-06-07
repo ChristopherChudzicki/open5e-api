@@ -3,6 +3,63 @@ from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 
 
+# Base for serializers produced by `prefixed_aggregate_serializer`. Filters
+# null entries (or substitutes defaults via `_defaults_fn`) at serialization
+# time. Not meant to be subclassed directly — docstring intentionally absent
+# so drf-spectacular doesn't apply it as the schema description.
+class _AggregateSerializerBase(serializers.Serializer):
+
+    # Override on the generated subclass: (instance, key) -> value, called
+    # only when the underlying model field is None. Leaving as None means
+    # "drop null keys from the output" (the "explicit" variant).
+    _defaults_fn = None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if self._defaults_fn is None:
+            return {k: v for k, v in data.items() if v is not None}
+        fn = self._defaults_fn
+        return {k: (fn(instance, k) if v is None else v) for k, v in data.items()}
+
+
+def prefixed_aggregate_serializer(*, model, prefix, keys, name, defaults_fn=None):
+    """
+    Build a Serializer class that exposes `{<key>: model.<prefix><key>}` for
+    each key, with per-field metadata (allow_null, required, help_text)
+    introspected from the underlying model field via `model._meta.get_field`.
+
+    Without `defaults_fn`, keys whose source field is None are omitted from the
+    output. With `defaults_fn` (an `(instance, key) -> value` callable), those
+    keys are populated from the callable instead — the "_all" variant pattern.
+
+    Apply as a nested field on the parent serializer with `source='*'`:
+
+        ABILITIES = ['strength', 'dexterity', ...]
+        SavingThrows = prefixed_aggregate_serializer(
+            model=Creature, prefix='saving_throw_', keys=ABILITIES,
+            name='SavingThrows',
+        )
+
+        class CreatureSerializer(GameContentSerializer):
+            saving_throws = SavingThrows(source='*', read_only=True)
+
+    All fields are emitted as IntegerField; broaden the dispatch here if a
+    caller needs non-integer aggregates.
+    """
+    attrs = {}
+    for key in keys:
+        mf = model._meta.get_field(f'{prefix}{key}')
+        attrs[key] = serializers.IntegerField(
+            source=f'{prefix}{key}',
+            allow_null=mf.null,
+            required=not (mf.null or mf.blank),
+            help_text=mf.help_text or '',
+        )
+    if defaults_fn is not None:
+        attrs['_defaults_fn'] = staticmethod(defaults_fn)
+    return type(name, (_AggregateSerializerBase,), attrs)
+
+
 class _CrossReferenceLinkSerializer(serializers.Serializer):
     """One link in crossreferences.to; defines API shape and serialization."""
 

@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from api_v2 import models
 
-from .abstracts import GameContentSerializer
+from .abstracts import GameContentSerializer, prefixed_aggregate_serializer
 from .abstracts import DescriptionSerializer
 from .damagetype import DamageTypeSummarySerializer
 from .condition import ConditionSummarySerializer
@@ -144,16 +144,79 @@ class CreatureResistancesAndImmunitiesSerializer(GameContentSerializer):
         ]
 
 
+ABILITIES = [
+    'strength', 'dexterity', 'constitution',
+    'intelligence', 'wisdom', 'charisma',
+]
+
+SKILLS = [
+    'acrobatics', 'animal_handling', 'arcana', 'athletics', 'deception',
+    'history', 'insight', 'intimidation', 'investigation', 'medicine',
+    'nature', 'perception', 'performance', 'persuasion', 'religion',
+    'sleight_of_hand', 'stealth', 'survival',
+]
+
+# Default ability modifier for each skill check.
+SKILL_DEFAULT_ABILITY = {
+    'acrobatics': 'dexterity',
+    'animal_handling': 'wisdom',
+    'arcana': 'intelligence',
+    'athletics': 'strength',
+    'deception': 'charisma',
+    'history': 'intelligence',
+    'insight': 'wisdom',
+    'intimidation': 'charisma',
+    'investigation': 'intelligence',
+    'medicine': 'wisdom',
+    'nature': 'intelligence',
+    'perception': 'wisdom',
+    'performance': 'charisma',
+    'persuasion': 'charisma',
+    'religion': 'intelligence',
+    'sleight_of_hand': 'dexterity',
+    'stealth': 'dexterity',
+    'survival': 'wisdom',
+}
+
+
+AbilityScoresSerializer = prefixed_aggregate_serializer(
+    model=models.Creature, prefix='ability_score_', keys=ABILITIES,
+    name='AbilityScores',
+)
+
+SavingThrowsSerializer = prefixed_aggregate_serializer(
+    model=models.Creature, prefix='saving_throw_', keys=ABILITIES,
+    name='SavingThrows',
+)
+
+SavingThrowsAllSerializer = prefixed_aggregate_serializer(
+    model=models.Creature, prefix='saving_throw_', keys=ABILITIES,
+    name='SavingThrowsAll',
+    defaults_fn=lambda inst, key: getattr(inst, f'modifier_{key}'),
+)
+
+SkillBonusesSerializer = prefixed_aggregate_serializer(
+    model=models.Creature, prefix='skill_bonus_', keys=SKILLS,
+    name='SkillBonuses',
+)
+
+SkillBonusesAllSerializer = prefixed_aggregate_serializer(
+    model=models.Creature, prefix='skill_bonus_', keys=SKILLS,
+    name='SkillBonusesAll',
+    defaults_fn=lambda inst, key: getattr(inst, f'modifier_{SKILL_DEFAULT_ABILITY[key]}'),
+)
+
+
 class CreatureSerializer(GameContentSerializer):
     '''The serializer for the Creature object.'''
 
     key = serializers.ReadOnlyField()
-    ability_scores = serializers.SerializerMethodField()
+    ability_scores = AbilityScoresSerializer(source='*', read_only=True)
     modifiers = serializers.SerializerMethodField()
-    saving_throws = serializers.SerializerMethodField()
-    saving_throws_all = serializers.SerializerMethodField()
-    skill_bonuses = serializers.SerializerMethodField()
-    skill_bonuses_all = serializers.SerializerMethodField()
+    saving_throws = SavingThrowsSerializer(source='*', read_only=True)
+    saving_throws_all = SavingThrowsAllSerializer(source='*', read_only=True)
+    skill_bonuses = SkillBonusesSerializer(source='*', read_only=True)
+    skill_bonuses_all = SkillBonusesAllSerializer(source='*', read_only=True)
     resistances_and_immunities = CreatureResistancesAndImmunitiesSerializer(source='*')
     actions = CreatureActionSerializer(many=True)
     traits = CreatureTraitSerializer(many=True, read_only=True)
@@ -212,21 +275,6 @@ class CreatureSerializer(GameContentSerializer):
         ]
 
     @extend_schema_field(inline_serializer(
-        name="ability_scores",
-        fields={
-            "strength": serializers.IntegerField(),
-            "dexterity": serializers.IntegerField(),
-            "constitution": serializers.IntegerField(),
-            "intelligence": serializers.IntegerField(),
-            "wisdom": serializers.IntegerField(),
-            "charisma": serializers.IntegerField(),
-        })
-    )
-    def get_ability_scores(self, creature):
-        '''Ability scores helper method.'''
-        return creature.get_ability_scores()
-
-    @extend_schema_field(inline_serializer(
         name="ability_modifiers",
         fields={
             # todo: technically they're all typed as any, but they're `floor`'d, so they should come out as integers
@@ -241,119 +289,6 @@ class CreatureSerializer(GameContentSerializer):
     def get_modifiers(self, creature):
         '''Modifiers helper method.'''
         return creature.get_modifiers()
-
-    @extend_schema_field(inline_serializer(
-        name="saving_throws",
-        fields={
-            # todo: all of these are "or none"
-            "strength": serializers.IntegerField(),
-            "dexterity": serializers.IntegerField(),
-            "constitution": serializers.IntegerField(),
-            "intelligence": serializers.IntegerField(),
-            "wisdom": serializers.IntegerField(),
-            "charisma": serializers.IntegerField(),
-        })
-    )
-    def get_saving_throws(self, creature):
-        '''Explicit saving throws helper method.'''
-        entries = creature.get_saving_throws().items()
-        return { key: value for key, value in entries if value is not None }
-
-    @extend_schema_field(inline_serializer(
-        name="saving_throws_all",
-        fields={
-            # todo: all of these are "or none"
-            "strength": serializers.IntegerField(),
-            "dexterity": serializers.IntegerField(),
-            "constitution": serializers.IntegerField(),
-            "intelligence": serializers.IntegerField(),
-            "wisdom": serializers.IntegerField(),
-            "charisma": serializers.IntegerField(),
-        })
-    )
-    def get_saving_throws_all(self, creature):
-        '''Implicit saving throws helper method.'''
-        defaults = creature.get_modifiers()
-        entries = creature.get_saving_throws().items()
-        return { key: (defaults[key] if value is None else value) for key, value in entries }
-
-    @extend_schema_field(inline_serializer(
-        name="skill_bonuses",
-        fields={
-            # todo: all of these are typed as also none
-            'acrobatics': serializers.IntegerField(),
-            'animal_handling': serializers.IntegerField(),
-            'arcana': serializers.IntegerField(),
-            'athletics': serializers.IntegerField(),
-            'deception': serializers.IntegerField(),
-            'history': serializers.IntegerField(),
-            'insight': serializers.IntegerField(),
-            'intimidation': serializers.IntegerField(),
-            'investigation': serializers.IntegerField(),
-            'medicine': serializers.IntegerField(),
-            'nature': serializers.IntegerField(),
-            'perception': serializers.IntegerField(),
-            'performance': serializers.IntegerField(),
-            'persuasion': serializers.IntegerField(),
-            'religion': serializers.IntegerField(),
-            'sleight_of_hand': serializers.IntegerField(),
-            'stealth': serializers.IntegerField(),
-            'survival': serializers.IntegerField(),
-        }
-    ))
-    def get_skill_bonuses(self, creature):
-        '''Explicit skill bonuses helper method.'''
-        entries = creature.get_skill_bonuses().items()
-        return { key: value for key, value in entries if value is not None }
-
-    @extend_schema_field(inline_serializer(
-        name="skill_bonuses_all",
-        fields={
-            # todo: all of these are typed as any
-            'acrobatics': serializers.IntegerField(),
-            'animal_handling': serializers.IntegerField(),
-            'arcana': serializers.IntegerField(),
-            'athletics': serializers.IntegerField(),
-            'deception': serializers.IntegerField(),
-            'history': serializers.IntegerField(),
-            'insight': serializers.IntegerField(),
-            'intimidation': serializers.IntegerField(),
-            'investigation': serializers.IntegerField(),
-            'medicine': serializers.IntegerField(),
-            'nature': serializers.IntegerField(),
-            'perception': serializers.IntegerField(),
-            'performance': serializers.IntegerField(),
-            'persuasion': serializers.IntegerField(),
-            'religion': serializers.IntegerField(),
-            'sleight_of_hand': serializers.IntegerField(),
-            'stealth': serializers.IntegerField(),
-            'survival': serializers.IntegerField(),
-        }
-    ))
-    def get_skill_bonuses_all(self, creature):
-        '''Implicit skill bonuses helper method.'''
-        defaults = {
-            'acrobatics': creature.modifier_dexterity,
-            'animal_handling': creature.modifier_wisdom,
-            'arcana': creature.modifier_intelligence,
-            'athletics': creature.modifier_strength,
-            'deception': creature.modifier_charisma,
-            'history': creature.modifier_intelligence,
-            'insight': creature.modifier_wisdom,
-            'intimidation': creature.modifier_charisma,
-            'investigation': creature.modifier_intelligence,
-            'medicine': creature.modifier_wisdom,
-            'nature': creature.modifier_intelligence,
-            'perception': creature.modifier_wisdom,
-            'performance': creature.modifier_charisma,
-            'persuasion': creature.modifier_charisma,
-            'religion': creature.modifier_intelligence,
-            'sleight_of_hand': creature.modifier_dexterity,
-            'stealth': creature.modifier_dexterity,
-            'survival': creature.modifier_wisdom,
-        }
-        entries = creature.get_skill_bonuses().items()
-        return { key: (defaults[key] if value is None else value) for key, value in entries }
 
     @extend_schema_field(inline_serializer(
         name="speed",
