@@ -144,13 +144,31 @@ class CreatureResistancesAndImmunitiesSerializer(GameContentSerializer):
         ]
 
 
+class SavingThrowsSerializer(serializers.Serializer):
+    '''
+    Saving-throw overrides. Each key is present only when the underlying field
+    is non-null (i.e. an override is set); a missing key means "use the default
+    modifier" (see `saving_throws_all` for the resolved-defaults view).
+    '''
+    strength     = serializers.IntegerField(source='saving_throw_strength',     required=False)
+    dexterity    = serializers.IntegerField(source='saving_throw_dexterity',    required=False)
+    constitution = serializers.IntegerField(source='saving_throw_constitution', required=False)
+    intelligence = serializers.IntegerField(source='saving_throw_intelligence', required=False)
+    wisdom       = serializers.IntegerField(source='saving_throw_wisdom',       required=False)
+    charisma     = serializers.IntegerField(source='saving_throw_charisma',     required=False)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return {k: v for k, v in data.items() if v is not None}
+
+
 class CreatureSerializer(GameContentSerializer):
     '''The serializer for the Creature object.'''
 
     key = serializers.ReadOnlyField()
     ability_scores = serializers.SerializerMethodField()
     modifiers = serializers.SerializerMethodField()
-    saving_throws = serializers.SerializerMethodField()
+    saving_throws = SavingThrowsSerializer(source='*', read_only=True)
     saving_throws_all = serializers.SerializerMethodField()
     skill_bonuses = serializers.SerializerMethodField()
     skill_bonuses_all = serializers.SerializerMethodField()
@@ -241,23 +259,6 @@ class CreatureSerializer(GameContentSerializer):
     def get_modifiers(self, creature):
         '''Modifiers helper method.'''
         return creature.get_modifiers()
-
-    @extend_schema_field(inline_serializer(
-        name="saving_throws",
-        fields={
-            # todo: all of these are "or none"
-            "strength": serializers.IntegerField(),
-            "dexterity": serializers.IntegerField(),
-            "constitution": serializers.IntegerField(),
-            "intelligence": serializers.IntegerField(),
-            "wisdom": serializers.IntegerField(),
-            "charisma": serializers.IntegerField(),
-        })
-    )
-    def get_saving_throws(self, creature):
-        '''Explicit saving throws helper method.'''
-        entries = creature.get_saving_throws().items()
-        return { key: value for key, value in entries if value is not None }
 
     @extend_schema_field(inline_serializer(
         name="saving_throws_all",
