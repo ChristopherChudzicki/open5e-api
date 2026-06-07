@@ -5058,6 +5058,34 @@ components:
       required:
       - document
       - gamesystem
+    AbilityScores:
+      type: object
+      properties:
+        strength:
+          type: integer
+          description: Integer representing the strength ability.
+        dexterity:
+          type: integer
+          description: Integer representing the dexterity ability.
+        constitution:
+          type: integer
+          description: Integer representing the constitution ability.
+        intelligence:
+          type: integer
+          description: Integer representing the intelligence ability.
+        wisdom:
+          type: integer
+          description: Integer representing the wisdom ability.
+        charisma:
+          type: integer
+          description: Integer representing the charisma ability.
+      required:
+      - charisma
+      - constitution
+      - dexterity
+      - intelligence
+      - strength
+      - wisdom
     AbilitySummary:
       type: object
       description: |-
@@ -5641,7 +5669,7 @@ components:
           readOnly: true
         ability_scores:
           allOf:
-          - $ref: '#/components/schemas/ability_scores'
+          - $ref: '#/components/schemas/AbilityScores'
           readOnly: true
         modifiers:
           allOf:
@@ -5652,19 +5680,19 @@ components:
           readOnly: true
         saving_throws:
           allOf:
-          - $ref: '#/components/schemas/saving_throws'
+          - $ref: '#/components/schemas/SavingThrows'
           readOnly: true
         saving_throws_all:
           allOf:
-          - $ref: '#/components/schemas/saving_throws_all'
+          - $ref: '#/components/schemas/SavingThrowsAll'
           readOnly: true
         skill_bonuses:
           allOf:
-          - $ref: '#/components/schemas/skill_bonuses'
+          - $ref: '#/components/schemas/SkillBonuses'
           readOnly: true
         skill_bonuses_all:
           allOf:
-          - $ref: '#/components/schemas/skill_bonuses_all'
+          - $ref: '#/components/schemas/SkillBonusesAll'
           readOnly: true
         passive_perception:
           type: integer
@@ -7828,6 +7856,61 @@ components:
       - key
       - name
       - rules
+    SavingThrows:
+      type: object
+      properties:
+        strength:
+          type: integer
+          nullable: true
+          description: Signed integer added to strength saving throws.
+        dexterity:
+          type: integer
+          nullable: true
+          description: Signed integer added to dexterity saving throws.
+        constitution:
+          type: integer
+          nullable: true
+          description: Signed integer added to constitution saving throws.
+        intelligence:
+          type: integer
+          nullable: true
+          description: Signed integer added to intelligence saving throws.
+        wisdom:
+          type: integer
+          nullable: true
+          description: Signed integer added to wisdom saving throws.
+        charisma:
+          type: integer
+          nullable: true
+          description: Signed integer added to charisma saving throws.
+    SavingThrowsAll:
+      type: object
+      properties:
+        strength:
+          type: integer
+          description: Signed integer added to strength saving throws.
+        dexterity:
+          type: integer
+          description: Signed integer added to dexterity saving throws.
+        constitution:
+          type: integer
+          description: Signed integer added to constitution saving throws.
+        intelligence:
+          type: integer
+          description: Signed integer added to intelligence saving throws.
+        wisdom:
+          type: integer
+          description: Signed integer added to wisdom saving throws.
+        charisma:
+          type: integer
+          description: Signed integer added to charisma saving throws.
+      required:
+      - charisma
+      - constitution
+      - dexterity
+      - intelligence
+      - strength
+      - wisdom
     SearchResult:
       type: object
       description: |-
@@ -8037,6 +8120,157 @@ components:
       - document
       - key
       - name
+    SkillBonuses:
+      type: object
+      properties:
+        acrobatics:
+          type: integer
+          nullable: true
+          description: Signed integer added to acrobatics skill checks.
+        animal_handling:
+          type: integer
+          nullable: true
+          description: Signed integer added to animal handling skill checks.
+        arcana:
+          type: integer
+          nullable: true
+          description: Signed integer added to arcana skill checks.
+        athletics:
+          type: integer
+          nullable: true
+          description: Signed integer added to athletics skill checks.
+        deception:
+          type: integer
+          nullable: true
+          description: Signed integer added to deception skill checks.
+        history:
+          type: integer
+          nullable: true
+          description: Signed integer added to history skill checks.
+        insight:
+          type: integer
+          nullable: true
+          description: Signed integer added to insight skill checks.
+        intimidation:
+          type: integer
+          nullable: true
+          description: Signed integer added to intimidation skill checks.
+        investigation:
+          type: integer
+          nullable: true
+          description: Signed integer added to investigation skill checks.
+        medicine:
+          type: integer
+          nullable: true
+          description: Signed integer added to medicine skill checks.
+        nature:
+          type: integer
+          nullable: true
+          description: Signed integer added to nature skill checks.
+        perception:
+          type: integer
+          nullable: true
+          description: Signed integer added to perception skill checks.
+        performance:
+          type: integer
+          nullable: true
+          description: Signed integer added to performance skill checks.
+        persuasion:
+          type: integer
+          nullable: true
+          description: Signed integer added to persuasion skill checks.
+        religion:
+          type: integer
+          nullable: true
+          description: Signed integer added to religion skill checks.
+        sleight_of_hand:
+          type: integer
+          nullable: true
+          description: Signed integer added to sleight of hand skill checks.
+        stealth:
+          type: integer
+          nullable: true
+          description: Signed integer added to stealth skill checks.
+        survival:
+          type: integer
+          nullable: true
+          description: Signed integer added to survival skill checks.
+    SkillBonusesAll:
+      type: object
+      properties:
+        acrobatics:
+          type: integer
+          description: Signed integer added to acrobatics skill checks.
+        animal_handling:
+          type: integer
+          description: Signed integer added to animal handling skill checks.
+        arcana:
+          type: integer
+          description: Signed integer added to arcana skill checks.
+        athletics:
+          type: integer
+          description: Signed integer added to athletics skill checks.
+        deception:
+          type: integer
+          description: Signed integer added to deception skill checks.
+        history:
+          type: integer
+          description: Signed integer added to history skill checks.
+        insight:
+          type: integer
+          description: Signed integer added to insight skill checks.
+        intimidation:
+          type: integer
+          description: Signed integer added to intimidation skill checks.
+        investigation:
+          type: integer
+          description: Signed integer added to investigation skill checks.
+        medicine:
+          type: integer
+          description: Signed integer added to medicine skill checks.
+        nature:
+          type: integer
+          description: Signed integer added to nature skill checks.
+        perception:
+          type: integer
+          description: Signed integer added to perception skill checks.
+        performance:
+          type: integer
+          description: Signed integer added to performance skill checks.
+        persuasion:
+          type: integer
+          description: Signed integer added to persuasion skill checks.
+        religion:
+          type: integer
+          description: Signed integer added to religion skill checks.
+        sleight_of_hand:
+          type: integer
+          description: Signed integer added to sleight of hand skill checks.
+        stealth:
+          type: integer
+          description: Signed integer added to stealth skill checks.
+        survival:
+          type: integer
+          description: Signed integer added to survival skill checks.
+      required:
+      - acrobatics
+      - animal_handling
+      - arcana
+      - athletics
+      - deception
+      - history
+      - insight
+      - intimidation
+      - investigation
+      - medicine
+      - nature
+      - perception
+      - performance
+      - persuasion
+      - religion
+      - sleight_of_hand
+      - stealth
+      - survival
     SkillDescription:
       type: object
       properties:
@@ -8888,28 +9122,6 @@ components:
       - intelligence
       - strength
       - wisdom
-    ability_scores:
-      type: object
-      properties:
-        strength:
-          type: integer
-        dexterity:
-          type: integer
-        constitution:
-          type: integer
-        intelligence:
-          type: integer
-        wisdom:
-          type: integer
-        charisma:
-          type: integer
-      required:
-      - charisma
-      - constitution
-      - dexterity
-      - intelligence
-      - strength
-      - wisdom
     hit_points:
       type: object
       properties:
@@ -8927,50 +9139,6 @@ components:
       - hit_dice_name
       - hit_points_at_1st_level
       - hit_points_at_higher_levels
-    saving_throws:
-      type: object
-      properties:
-        strength:
-          type: integer
-        dexterity:
-          type: integer
-        constitution:
-          type: integer
-        intelligence:
-          type: integer
-        wisdom:
-          type: integer
-        charisma:
-          type: integer
-      required:
-      - charisma
-      - constitution
-      - dexterity
-      - intelligence
-      - strength
-      - wisdom
-    saving_throws_all:
-      type: object
-      properties:
-        strength:
-          type: integer
-        dexterity:
-          type: integer
-        constitution:
-          type: integer
-        intelligence:
-          type: integer
-        wisdom:
-          type: integer
-        charisma:
-          type: integer
-      required:
-      - charisma
-      - constitution
-      - dexterity
-      - intelligence
-      - strength
-      - wisdom
     search_document:
       type: object
       properties:
@@ -8983,122 +9151,6 @@ components:
       required:
       - key
       - name
-    skill_bonuses:
-      type: object
-      properties:
-        acrobatics:
-          type: integer
-        animal_handling:
-          type: integer
-        arcana:
-          type: integer
-        athletics:
-          type: integer
-        deception:
-          type: integer
-        history:
-          type: integer
-        insight:
-          type: integer
-        intimidation:
-          type: integer
-        investigation:
-          type: integer
-        medicine:
-          type: integer
-        nature:
-          type: integer
-        perception:
-          type: integer
-        performance:
-          type: integer
-        persuasion:
-          type: integer
-        religion:
-          type: integer
-        sleight_of_hand:
-          type: integer
-        stealth:
-          type: integer
-        survival:
-          type: integer
-      required:
-      - acrobatics
-      - animal_handling
-      - arcana
-      - athletics
-      - deception
-      - history
-      - insight
-      - intimidation
-      - investigation
-      - medicine
-      - nature
-      - perception
-      - performance
-      - persuasion
-      - religion
-      - sleight_of_hand
-      - stealth
-      - survival
-    skill_bonuses_all:
-      type: object
-      properties:
-        acrobatics:
-          type: integer
-        animal_handling:
-          type: integer
-        arcana:
-          type: integer
-        athletics:
-          type: integer
-        deception:
-          type: integer
-        history:
-          type: integer
-        insight:
-          type: integer
-        intimidation:
-          type: integer
-        investigation:
-          type: integer
-        medicine:
-          type: integer
-        nature:
-          type: integer
-        perception:
-          type: integer
-        performance:
-          type: integer
-        persuasion:
-          type: integer
-        religion:
-          type: integer
-        sleight_of_hand:
-          type: integer
-        stealth:
-          type: integer
-        survival:
-          type: integer
-      required:
-      - acrobatics
-      - animal_handling
-      - arcana
-      - athletics
-      - deception
-      - history
-      - insight
-      - intimidation
-      - investigation
-      - medicine
-      - nature
-      - perception
-      - performance
-      - persuasion
-      - religion
-      - sleight_of_hand
-      - stealth
-      - survival
     speed:
       type: object
       properties:
